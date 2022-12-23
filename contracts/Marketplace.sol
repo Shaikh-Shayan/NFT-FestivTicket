@@ -296,8 +296,14 @@ contract FestMarket is ReentrancyGuard {
         // update _lastSalePrice for seller in map -> not more than 10% hike rule
         _lastSalePrice[seller][tokenId] = priceWeiToken;
 
-        // monetization in secondary sales for _organizer
-        payable(_organizer).transfer(_listingPrice);
+        // monetization in secondary sales for _organizer, 10% of the trade
+        /**
+        _currencyTokenWeiPrice -> Price of the currency token. (in eth)
+        priceWeiToken -> Price of the ticket that seller listed. (in currency token)
+         */
+        payable(_organizer).transfer(
+            (_currencyTokenWeiPrice * priceWeiToken) / (10 * (10**18))
+        );
     }
 
     // fetchFestTicketsInSecondaryMarket -> sold and unsold all
