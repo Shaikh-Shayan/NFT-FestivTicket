@@ -28,16 +28,16 @@ contract FestMarket is ReentrancyGuard {
     uint256 public _currencyTokenId;
 
     // currency token price in ether(usd later todo)
-    uint256 public _currencyTokenWeiPrice = 0.1 ether; // in wei per token
+    uint256 public _currencyTokenWeiPrice = 10 wei; // in wei per token
 
     // fest ticket NFT token id
     uint256 public _nftId;
 
     // fest ticket NFT price
-    uint256 public _nftWeiPrice = 1 ether; // 1 CurrencyToken, in wei
+    uint256 public _nftWeiPrice = 100; // 1 CurrencyToken, in currency uint
 
     // monetization
-    uint256 public _listingPrice = 0.025 ether; // in wei
+    uint256 public _listingPrice = 1 wei; // in wei
 
     // keeps the count for our sold tickets // max 1000
     uint256 public _ticketsSold = 0;
@@ -107,7 +107,7 @@ contract FestMarket is ReentrancyGuard {
      */
     function mintCurrencyToken(uint256 supplyInToken) public {
         require(msg.sender == _organizer, "Only organizer can mint currency!");
-        _festivalERC.mintCurrency("settlemint_fest", supplyInToken * 10**18);
+        _festivalERC.mintCurrency("settlemint_fest", supplyInToken);
     }
 
     /**
@@ -115,8 +115,8 @@ contract FestMarket is ReentrancyGuard {
      */
     function buyCurrencyToken(uint256 quantityWeiToken) public payable {
         require(
-            msg.value == (_currencyTokenWeiPrice * quantityWeiToken) / (10**18),
-            "Please send the correct eth in order to complete the purchase!"
+            msg.value == (_currencyTokenWeiPrice * quantityWeiToken),
+            "Please send the correct wei in order to complete the purchase!"
         );
         // send currency token from market contract to msg.sender
         _festivalERC.safeTransferFrom(
@@ -200,9 +200,8 @@ contract FestMarket is ReentrancyGuard {
             "listing price can't be more than 10% of your last sale!"
         );
         require(
-            msg.value ==
-                (_currencyTokenWeiPrice * priceWeiToken) / (10 * (10**18)),
-            "require listing fee {0.025 eth} for selling!"
+            msg.value == _listingPrice,
+            "require listing fee {1 wei} for selling!"
         );
         /**
         @notice: First approve all the tokens to the contract.
@@ -297,14 +296,8 @@ contract FestMarket is ReentrancyGuard {
         // update _lastSalePrice for seller in map -> not more than 10% hike rule
         _lastSalePrice[seller][tokenId] = priceWeiToken;
 
-        // monetization in secondary sales for _organizer, 10% of the trade
-        /**
-        _currencyTokenWeiPrice -> Price of the currency token. (in eth)
-        priceWeiToken -> Price of the ticket that seller listed. (in currency token)
-         */
-        payable(_organizer).transfer(
-            (_currencyTokenWeiPrice * priceWeiToken) / (10 * (10**18))
-        );
+        // monetization in secondary sales for _organizer
+        payable(_organizer).transfer(_listingPrice);
     }
 
     // fetchFestTicketsInSecondaryMarket -> sold and unsold all
