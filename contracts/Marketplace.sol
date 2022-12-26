@@ -200,7 +200,8 @@ contract FestMarket is ReentrancyGuard {
             "listing price can't be more than 10% of your last sale!"
         );
         require(
-            msg.value == _listingPrice,
+            msg.value ==
+                (_currencyTokenWeiPrice * priceWeiToken) / (10 * (10**18)),
             "require listing fee {0.025 eth} for selling!"
         );
         /**
